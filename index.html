@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candidatura</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='4' y='4' width='24' height='24' rx='3' fill='%23eaffea' stroke='%23178f35' stroke-width='3'/%3E%3Cpath d='M10 16.5l4.2 4.2L22.5 11' fill='none' stroke='%2314a83b' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 6 6, auto;
+    }
+
+    body {
+      min-height: 100vh;
+      background-image: url('bgofis2.png');
+      background-repeat: repeat;
+      background-size: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow: hidden;
+      position: relative;
+      font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+    }
+
+    #grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-content: center;
+      gap: 8px;
+      width: fit-content;
+      max-width: 100%;
+      z-index: 1;
+    }
+
+    .cell {
+      width: var(--cell-w, 400px);
+      height: var(--cell-h, 400px);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      flex-shrink: 0;
+    }
+
+    #hero-title {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #ffffff;
+      font-size: clamp(2.2rem, 8vw, 6rem);
+      letter-spacing: 0.08em;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.65);
+      z-index: 3;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .ticker {
+      position: fixed;
+      left: 0;
+      width: 100%;
+      height: 52px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.35);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+      z-index: 4;
+      display: flex;
+      align-items: center;
+    }
+
+    #ticker-top {
+      top: 0;
+    }
+
+    #ticker-bottom {
+      bottom: 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.35);
+      border-bottom: 0;
+    }
+
+    .ticker-track {
+      display: flex;
+      width: max-content;
+      --loop-distance: 0px;
+      will-change: transform;
+    }
+
+    #ticker-top .ticker-track {
+      animation: ticker-left 24s linear infinite;
+    }
+
+    #ticker-bottom .ticker-track {
+      transform: translateX(calc(-1 * var(--loop-distance)));
+      animation: ticker-right 24s linear infinite;
+    }
+
+    .ticker-group {
+      display: flex;
+      align-items: center;
+      gap: 34px;
+      padding-right: 34px;
+      white-space: nowrap;
+    }
+
+    .ticker-item {
+      color: #ffffff;
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+    }
+
+    a,
+    button,
+    .cell,
+    #ticker,
+    body {
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='4' y='4' width='24' height='24' rx='3' fill='%23eaffea' stroke='%23178f35' stroke-width='3'/%3E%3Cpath d='M10 16.5l4.2 4.2L22.5 11' fill='none' stroke='%2314a83b' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 6 6, pointer;
+    }
+
+    @keyframes ticker-left {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(calc(-1 * var(--loop-distance)));
+      }
+    }
+
+    @keyframes ticker-right {
+      from {
+        transform: translateX(calc(-1 * var(--loop-distance)));
+      }
+      to {
+        transform: translateX(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="ticker-top" class="ticker">
+    <div id="ticker-top-track" class="ticker-track"></div>
+  </div>
+
+  <div id="ticker-bottom" class="ticker">
+    <div id="ticker-bottom-track" class="ticker-track"></div>
+  </div>
+
+  <h1 id="hero-title">votez DAvid</h1>
+  <div id="grid"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script>
+    const stances = ['sketch1.png', 'sketch2.png', 'sketch3.png', 'sketch4.png'];
+    const slogans = ['Încredere', 'Entuziasm!', 'Entropie', 'Inovație', 'Sustenabilitate', 'Comunitate', 'Transparență', 'Eficiență', 'Empatie', 'Progres', 'Colaborare'];
+    const CELL_W = 400;
+    const CELL_H = 400;
+    const GAP = 8;
+    const PADDING = 32;
+
+    function randomStance() {
+      return stances[Math.floor(Math.random() * stances.length)];
+    }
+
+    function buildGrid() {
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+
+      const usableW = Math.max(1, window.innerWidth - PADDING);
+      const usableH = Math.max(1, window.innerHeight - PADDING);
+
+      const cellW = Math.min(CELL_W, usableW);
+      const cellH = Math.min(CELL_H, usableH);
+
+      grid.style.setProperty('--cell-w', `${cellW}px`);
+      grid.style.setProperty('--cell-h', `${cellH}px`);
+
+      const cols = Math.max(1, Math.floor((usableW + GAP) / (cellW + GAP)));
+      const rows = Math.max(1, Math.ceil((usableH + GAP) / (cellH + GAP)));
+      const count = cols * rows;
+
+      for (let i = 0; i < count; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.style.backgroundImage = `url('${randomStance()}')`;
+        grid.appendChild(cell);
+      }
+    }
+
+    function shuffleStances() {
+      document.querySelectorAll('.cell').forEach(cell => {
+        cell.style.backgroundImage = `url('${randomStance()}')`;
+      });
+    }
+
+    function renderTicker(trackId) {
+      const track = document.getElementById(trackId);
+      const groupMarkup = slogans
+        .map(item => `<span class="ticker-item">${item}</span>`)
+        .join('');
+
+      track.innerHTML = `
+        <div class="ticker-group">${groupMarkup}</div>
+        <div class="ticker-group" aria-hidden="true">${groupMarkup}</div>
+        <div class="ticker-group" aria-hidden="true">${groupMarkup}</div>
+      `;
+
+      const firstGroup = track.firstElementChild;
+      if (firstGroup) {
+        track.style.setProperty('--loop-distance', `${firstGroup.scrollWidth}px`);
+      }
+    }
+
+    function fireConfetti(event) {
+      if (typeof confetti !== 'function') {
+        return;
+      }
+
+      const originX = event.clientX / window.innerWidth;
+      const originY = event.clientY / window.innerHeight;
+
+      confetti({
+        particleCount: 120,
+        spread: 75,
+        startVelocity: 34,
+        scalar: 1.1,
+        ticks: 220,
+        colors: ['#17a34a', '#5ee173', '#ffffff', '#d5ffd9'],
+        origin: { x: originX, y: originY }
+      });
+    }
+
+    renderTicker('ticker-top-track');
+    renderTicker('ticker-bottom-track');
+    buildGrid();
+    window.addEventListener('resize', () => {
+      buildGrid();
+      renderTicker('ticker-top-track');
+      renderTicker('ticker-bottom-track');
+    });
+    window.addEventListener('click', fireConfetti);
+    setInterval(shuffleStances, 1500);
+  </script>
+</body>
+</html>
